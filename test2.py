@@ -13,9 +13,9 @@ import scipy.io.wavfile
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
 
 data_dir = './deep_voice/test'
-model_path = 'dl_model.pth'
+model_path = 'dl_mel.pth'
 
-def extract_feature(file_path, feature_type='mel', n_mfcc=20, n_mels=40):
+def extract_feature(file_path, feature_type='mel', n_mfcc=20, n_mels=128):
     sr, y = scipy.io.wavfile.read(file_path)
     y = y.astype(np.float32)
     if y.dtype == np.int16:
@@ -33,7 +33,7 @@ def extract_feature(file_path, feature_type='mel', n_mfcc=20, n_mels=40):
     return feat
 
 class AudioDataset(Dataset):
-    def __init__(self, data_dir, feature_type='mel', n_mels=40):
+    def __init__(self, data_dir, feature_type='mel', n_mels=128):
         self.X = []
         self.y = []
         for label_name, label in [('real', 1), ('fake', 0)]:
@@ -82,7 +82,7 @@ class SimpleCNN(nn.Module):
         return x
 
 def evaluate():
-    n_mels = 40
+    n_mels = 128
     batch_size = 16
 
     print("加载测试集...")
