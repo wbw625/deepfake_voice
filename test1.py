@@ -13,7 +13,6 @@ from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
 data_dir = './deep_voice/test'
 
 
-# model_path = 'svm_model_sf.joblib'
 # def extract_feature(file_path, feature_type='mfcc', n_mfcc=20):
 #     y, sr = sf.read(file_path)
 #     if y is None or len(y) == 0:
@@ -34,7 +33,6 @@ data_dir = './deep_voice/test'
 #         return np.mean(feat, axis=1)
 
 
-model_path = 'svm_model_scipy.joblib'
 def extract_feature(file_path, feature_type='mfcc', n_mfcc=20):
     sr, y = scipy.io.wavfile.read(file_path)
     y = y.astype(np.float32)
@@ -75,22 +73,32 @@ def load_data(data_dir, feature_type='mfcc'):
                     print(f"Error processing {fpath}: {e}")
     return np.array(X), np.array(y)
 
-print("加载测试集...")
-X_test, y_test = load_data(data_dir, feature_type='mfcc')
-print(f"测试集样本数: {len(y_test)}")
 
-print("加载模型...")
-clf = joblib.load(model_path)
+def test():
+    # model_path = 'svm_linear_model.joblib'
+    model_path = 'svm_rbf_model.joblib'
+    # model_path = 'logreg_model.joblib'
 
-print("预测中...")
-y_pred = clf.predict(X_test)
-y_prob = clf.predict_proba(X_test)[:, 1] if hasattr(clf, "predict_proba") else y_pred
+    print("加载测试集...")
+    X_test, y_test = load_data(data_dir, feature_type='mfcc')
+    print(f"测试集样本数: {len(y_test)}")
 
-acc = accuracy_score(y_test, y_pred)
-f1 = f1_score(y_test, y_pred)
-try:
-    auc = roc_auc_score(y_test, y_prob)
-except Exception:
-    auc = 0.0
+    print("加载模型...")
+    clf = joblib.load(model_path)
 
-print(f"Accuracy {acc*100:.2f}%. F1 {f1*100:.2f}%. AUC {auc:.4f}")
+    print("预测中...")
+    y_pred = clf.predict(X_test)
+    y_prob = clf.predict_proba(X_test)[:, 1] if hasattr(clf, "predict_proba") else y_pred
+
+    acc = accuracy_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+    try:
+        auc = roc_auc_score(y_test, y_prob)
+    except Exception:
+        auc = 0.0
+
+    print(f"Accuracy {acc*100:.2f}%. F1 {f1*100:.2f}%. AUC {auc:.4f}")
+
+
+if __name__ == "__main__":
+    test()

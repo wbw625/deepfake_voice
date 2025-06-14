@@ -6,6 +6,7 @@ import os
 import numpy as np
 import librosa
 from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
 import joblib
 import soundfile as sf
 import scipy.io.wavfile
@@ -13,7 +14,6 @@ import scipy.io.wavfile
 data_dir = './deep_voice/train'
 
 
-# model_path = 'svm_model_sf.joblib'
 # def extract_feature(file_path, feature_type='mfcc', n_mfcc=20):
 #     y, sr = sf.read(file_path)
 #     if y is None or len(y) == 0:
@@ -35,7 +35,6 @@ data_dir = './deep_voice/train'
 #         return np.mean(feat, axis=1)
 
 
-model_path = 'svm_model_scipy.joblib'
 def extract_feature(file_path, feature_type='mfcc', n_mfcc=20):
     sr, y = scipy.io.wavfile.read(file_path)
     y = y.astype(np.float32)
@@ -76,14 +75,52 @@ def load_data(data_dir, feature_type='mfcc'):
     return np.array(X), np.array(y)
 
 
-print("加载数据中...")
-X, y = load_data(data_dir, feature_type='mfcc')  # 可选 'cqt' 或 'mel'
-print(f"数据量: {len(y)}")
+def train_svm_linear():
+    model_path = 'svm_linear_model.joblib'
+    print("加载数据中...")
+    X, y = load_data(data_dir, feature_type='mfcc')  # 可选 'cqt' 或 'mel'
+    print(f"数据量: {len(y)}")
 
-print("训练SVM模型...")
-clf = SVC(kernel='linear', probability=True)
-clf.fit(X, y)
+    print("训练SVM模型...")
+    clf = SVC(kernel='linear', probability=True)
+    clf.fit(X, y)
 
-print(f"保存模型到 {model_path}")
-joblib.dump(clf, model_path)
-print("训练完成，模型已保存。")
+    print(f"保存模型到 {model_path}")
+    joblib.dump(clf, model_path)
+    print("训练完成，模型已保存。")
+
+
+def train_svm_rbf():
+    model_path = 'svm_rbf_model.joblib'
+    print("加载数据中...")
+    X, y = load_data(data_dir, feature_type='mfcc')  # 可选 'cqt' 或 'mel'
+    print(f"数据量: {len(y)}")
+
+    print("训练SVM模型...")
+    clf = SVC(kernel='rbf', probability=True)
+    clf.fit(X, y)
+
+    print(f"保存模型到 {model_path}")
+    joblib.dump(clf, model_path)
+    print("训练完成，模型已保存。")
+
+
+def train_logistic_regression():
+    model_path = 'logreg_model.joblib'
+    print("加载数据中...")
+    X, y = load_data(data_dir, feature_type='mfcc')  # 可选 'cqt' 或 'mel'
+    print(f"数据量: {len(y)}")
+
+    print("训练逻辑回归模型...")
+    clf = LogisticRegression(max_iter=1000)
+    clf.fit(X, y)
+
+    print(f"保存模型到 {model_path}")
+    joblib.dump(clf, model_path)
+    print("训练完成，模型已保存。")
+
+
+if __name__ == '__main__':
+    # train_svm_linear()
+    train_svm_rbf()
+    # train_logistic_regression()
