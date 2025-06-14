@@ -25,7 +25,7 @@ data_dir = './deep_voice/test'
 #         feat = np.abs(feat)
 #         return np.mean(feat, axis=1)
 #     elif feature_type == 'mel':
-#         feat = librosa.feature.melspectrogram(y, sr=sr)
+#         feat = librosa.feature.melspectrogram(y=y, sr=sr)
 #         feat = np.log1p(feat)
 #         return np.mean(feat, axis=1)
 #     else:  # mfcc
@@ -48,7 +48,7 @@ def extract_feature(file_path, feature_type='mfcc', n_mfcc=20):
         feat = np.abs(feat)
         return np.mean(feat, axis=1)
     elif feature_type == 'mel':
-        feat = librosa.feature.melspectrogram(y, sr=sr)
+        feat = librosa.feature.melspectrogram(y=y, sr=sr)
         feat = np.log1p(feat)
         return np.mean(feat, axis=1)
     else:  # mfcc
@@ -75,16 +75,32 @@ def load_data(data_dir, feature_type='mfcc'):
 
 
 def test():
-    # model_path = 'svm_linear_model.joblib'
-    model_path = 'svm_rbf_model.joblib'
-    # model_path = 'logreg_model.joblib'
+    # model_path = 'svm_linear_mfcc_sf.joblib'
+    # model_path = 'svm_linear_mfcc_scipy.joblib'
+    # model_path = 'svm_rbf_mfcc.joblib'
+    # model_path = 'logreg_mfcc.joblib'
+    
+    # model_path = 'svm_linear_mel.joblib'
+    model_path = 'svm_rbf_mel.joblib'
+    # model_path = 'logreg_mel.joblib'
 
     print("加载测试集...")
-    X_test, y_test = load_data(data_dir, feature_type='mfcc')
+    # X_test, y_test = load_data(data_dir, feature_type='mfcc')
+    X_test, y_test = load_data(data_dir, feature_type='mel')
     print(f"测试集样本数: {len(y_test)}")
 
+
+    # print("加载模型...")
+    # clf = joblib.load(model_path)
+
+
     print("加载模型...")
-    clf = joblib.load(model_path)
+    model_dict = joblib.load(model_path)
+    clf = model_dict['model']
+    scaler = model_dict['scaler']
+    print("标准化特征...")
+    X_test = scaler.transform(X_test)
+
 
     print("预测中...")
     y_pred = clf.predict(X_test)
@@ -97,6 +113,7 @@ def test():
     except Exception:
         auc = 0.0
 
+    print(f"Model: {model_path}")
     print(f"Accuracy {acc*100:.2f}%. F1 {f1*100:.2f}%. AUC {auc:.4f}")
 
 

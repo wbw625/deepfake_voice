@@ -6,6 +6,7 @@ import os
 import numpy as np
 import librosa
 from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 import joblib
 import soundfile as sf
@@ -50,7 +51,7 @@ def extract_feature(file_path, feature_type='mfcc', n_mfcc=20):
         feat = np.abs(feat)
         return np.mean(feat, axis=1)
     elif feature_type == 'mel':
-        feat = librosa.feature.melspectrogram(y, sr=sr)
+        feat = librosa.feature.melspectrogram(y=y, sr=sr)
         feat = np.log1p(feat)
         return np.mean(feat, axis=1)
     else:  # mfcc
@@ -76,51 +77,63 @@ def load_data(data_dir, feature_type='mfcc'):
 
 
 def train_svm_linear():
-    model_path = 'svm_linear_model.joblib'
+    model_path = 'svm_linear_mel.joblib'
     print("加载数据中...")
-    X, y = load_data(data_dir, feature_type='mfcc')  # 可选 'cqt' 或 'mel'
+    X, y = load_data(data_dir, feature_type='mel')
     print(f"数据量: {len(y)}")
+
+    print("标准化特征...")
+    scaler = StandardScaler()
+    X = scaler.fit_transform(X)
 
     print("训练SVM模型...")
     clf = SVC(kernel='linear', probability=True)
     clf.fit(X, y)
 
     print(f"保存模型到 {model_path}")
-    joblib.dump(clf, model_path)
+    joblib.dump({'model': clf, 'scaler': scaler}, model_path)
     print("训练完成，模型已保存。")
 
 
 def train_svm_rbf():
-    model_path = 'svm_rbf_model.joblib'
+    model_path = 'svm_rbf_mel.joblib'
     print("加载数据中...")
-    X, y = load_data(data_dir, feature_type='mfcc')  # 可选 'cqt' 或 'mel'
+    X, y = load_data(data_dir, feature_type='mel')
     print(f"数据量: {len(y)}")
+
+    print("标准化特征...")
+    scaler = StandardScaler()
+    X = scaler.fit_transform(X)
 
     print("训练SVM模型...")
     clf = SVC(kernel='rbf', probability=True)
     clf.fit(X, y)
 
     print(f"保存模型到 {model_path}")
-    joblib.dump(clf, model_path)
+    joblib.dump({'model': clf, 'scaler': scaler}, model_path)
     print("训练完成，模型已保存。")
 
 
 def train_logistic_regression():
-    model_path = 'logreg_model.joblib'
+    model_path = 'logreg_mel.joblib'
     print("加载数据中...")
-    X, y = load_data(data_dir, feature_type='mfcc')  # 可选 'cqt' 或 'mel'
+    X, y = load_data(data_dir, feature_type='mel')
     print(f"数据量: {len(y)}")
 
+    print("标准化特征...")
+    scaler = StandardScaler()
+    X = scaler.fit_transform(X)
+
     print("训练逻辑回归模型...")
-    clf = LogisticRegression(max_iter=1000)
+    clf = LogisticRegression(max_iter=2000)  # 可适当增加迭代次数
     clf.fit(X, y)
 
     print(f"保存模型到 {model_path}")
-    joblib.dump(clf, model_path)
+    joblib.dump({'model': clf, 'scaler': scaler}, model_path)
     print("训练完成，模型已保存。")
 
 
 if __name__ == '__main__':
-    # train_svm_linear()
+    train_svm_linear()
     train_svm_rbf()
     # train_logistic_regression()

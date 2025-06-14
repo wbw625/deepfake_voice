@@ -127,6 +127,7 @@ def evaluate():
     except Exception:
         auc = 0.0
 
+    print(f"Model: {model_path}")
     print(f"Accuracy {acc*100:.2f}%. F1 {f1*100:.2f}%. AUC {auc:.4f}")
 
 

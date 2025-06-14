@@ -12,9 +12,9 @@ import soundfile as sf
 import scipy.io.wavfile
 
 data_dir = './deep_voice/train'
-model_path = 'dl_model.pth'
+model_path = 'dl_mel.pth'
 
-def extract_feature(file_path, feature_type='mel', n_mfcc=20, n_mels=40):
+def extract_feature(file_path, feature_type='mel', n_mfcc=20, n_mels=128):
     sr, y = scipy.io.wavfile.read(file_path)
     y = y.astype(np.float32)
     # 归一化到[-1, 1]，防止溢出
@@ -34,7 +34,7 @@ def extract_feature(file_path, feature_type='mel', n_mfcc=20, n_mels=40):
 
 
 class AudioDataset(Dataset):
-    def __init__(self, data_dir, feature_type='mel', n_mels=40):
+    def __init__(self, data_dir, feature_type='mel', n_mels=128):
         self.X = []
         self.y = []
         for label_name, label in [('real', 1), ('fake', 0)]:
@@ -84,9 +84,9 @@ class SimpleCNN(nn.Module):
         return x
 
 def train():
-    n_mels = 40
+    n_mels = 128
     batch_size = 16
-    epochs = 6
+    epochs = 10
     lr = 1e-3
 
     print("加载数据中...")
