@@ -85,7 +85,7 @@ class SimpleCNN(nn.Module):
 
 
 def train():
-    model_path = 'dl_mels128_epochs10.pth'
+    model_path = './models/dl_mels128_epochs10.pth'
 
     n_mels = 128
     batch_size = 16

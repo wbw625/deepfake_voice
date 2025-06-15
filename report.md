@@ -247,7 +247,28 @@ print(f"Accuracy {acc*100:.2f}%. F1 {f1*100:.2f}%. AUC {auc:.4f}")
 ### 3.1 `train2.py`的实现
 #### 3.1.1 数据集加载 & 特征提取
 
-这里和`train1.py`中的数据加载和特征提取过程非常类似，不做赘述。
+这里和`train1.py`中的数据加载和特征提取过程非常类似，只是改用类`AudioDataset(Dataset)`来封装数据集：
+
+```python
+class AudioDataset(Dataset):
+    def __init__(self, data_dir, feature_type='mel', n_mels=128):
+        self.X = []
+        self.y = []
+        for label_name, label in [('real', 1), ('fake', 0)]:
+            folder = os.path.join(data_dir, label_name)
+            for fname in os.listdir(folder):
+                fpath = os.path.join(folder, fname)
+                try:
+                    feat = extract_feature(fpath, feature_type=feature_type, n_mels=n_mels)
+                    self.X.append(feat)
+                    self.y.append(label)
+    # 此处省略部分代码
+    def __getitem__(self, idx):
+        return torch.tensor(self.X[idx]), torch.tensor(self.y[idx], dtype=torch.long)
+```
+
+该类继承自`torch.utils.data.Dataset`，用于加载音频数据并提取特征。`__init__`方法中，遍历数据目录，读取音频文件并提取特征，最后将特征和标签存储在列表中。在特征提取时，使用`extract_feature`函数提取`mel`频谱特征，并将其转换为PyTorch张量。
+
 
 #### 3.1.2 模型训练
 
@@ -303,6 +324,8 @@ for epoch in range(epochs):
 为了防止过拟合，使用了验证集来监控模型的性能，并在每个epoch结束时打印训练和验证的损失和准确率：
 
 ```python
+train_idx, val_idx = train_test_split(indices, test_size=0.2, random_state=42, stratify=full_dataset.y)
+
 class SubsetDataset(Dataset):
     def __init__(self, X, y):
         self.X = X
@@ -396,11 +419,11 @@ print(f"Accuracy {acc*100:.2f}%. F1 {f1*100:.2f}%. AUC {auc:.4f}")
 随后，观察`dl_mels128_epochs10.pth`的训练过程：
 
 ```
-Epoch 1/9 Train Loss: 0.1702 Acc: 93.53% | Val Loss: 0.0819 Acc: 97.00%
-Epoch 2/9 Train Loss: 0.0722 Acc: 97.39% | Val Loss: 0.3704 Acc: 96.94%
-Epoch 3/9 Train Loss: 0.1038 Acc: 95.67% | Val Loss: 0.0404 Acc: 98.67%
-Epoch 4/9 Train Loss: 0.0275 Acc: 98.86% | Val Loss: 0.0118 Acc: 99.83%
-Epoch 5/9 Train Loss: 0.0016 Acc: 99.97% | Val Loss: 0.0130 Acc: 99.83%
+Epoch 1/10 Train Loss: 0.1702 Acc: 93.53% | Val Loss: 0.0819 Acc: 97.00%
+Epoch 2/10 Train Loss: 0.0722 Acc: 97.39% | Val Loss: 0.3704 Acc: 96.94%
+Epoch 3/10 Train Loss: 0.1038 Acc: 95.67% | Val Loss: 0.0404 Acc: 98.67%
+Epoch 4/10 Train Loss: 0.0275 Acc: 98.86% | Val Loss: 0.0118 Acc: 99.83%
+Epoch 5/10 Train Loss: 0.0016 Acc: 99.97% | Val Loss: 0.0130 Acc: 99.83%
 Epoch 6/10 Train Loss: 0.0012 Acc: 99.99% | Val Loss: 0.0110 Acc: 99.78%
 Epoch 7/10 Train Loss: 0.0003 Acc: 99.99% | Val Loss: 0.0111 Acc: 99.78%
 Epoch 8/10 Train Loss: 0.0002 Acc: 99.99% | Val Loss: 0.0117 Acc: 99.67%
@@ -428,6 +451,7 @@ Epoch 10/10 Train Loss: 0.0001 Acc: 99.99% | Val Loss: 0.0127 Acc: 99.78%
 ### 4.1 结果总结
 
 传统机器学习和深度学习模型的最佳表现分别如下：
+
 | 传统机器学习/深度学习 | 模型 | Accuracy | F1 值 | AUC 值 |
 | ------------------- | ---- | -------- | ---- | ------ |
 | 传统机器学习 | svm_linear_mel.joblib | 99.88% | 99.83% | 1.0000 |
@@ -437,14 +461,56 @@ Epoch 10/10 Train Loss: 0.0001 Acc: 99.99% | Val Loss: 0.0127 Acc: 99.78%
 总而言之，此次实验非常成功。
 
 
-### 4.1 收获&心得
+### 4.2 收获&心得
+
+本次实验让我对音频处理、特征提取以及机器学习/深度学习在语音分类任务中的应用有了更深入的理解和实践经验。
+
+- 特征选择的关键性：
+    - 实验结果清晰地表明，选择合适的音频特征对于模型性能至关重要。从最初使用`mfcc`特征效果不甚理想，到切换为`mel`频谱特征后，无论是传统机器学习模型还是深度学习模型，性能都得到了质的飞跃。这让我深刻体会到领域知识和特征工程在机器学习项目中的重要性。`mel`频谱图保留了更多频谱细节，更适合捕捉伪造语音可能存在的细微失真。
+
+- 数据预处理的必要性：
+    - 对提取的特征进行标准化处理，特别是对于逻辑回归这类对特征尺度敏感的模型，能够有效改善模型的收敛速度和最终性能。实验中，标准化处理帮助解决了逻辑回归模型的收敛问题，并提升了所有模型的表现。
+
+- 模型选择与对比：
+
+    - 传统机器学习模型（如SVM和逻辑回归）在选择了合适的特征`mel`并进行适当预处理后，依然能够达到非常高的准确率，甚至与深度学习模型媲美。这说明在某些任务中，简单有效的传统方法不容忽视。
+
+    - 深度学习模型（CNN）展现了其强大的自动特征学习能力。通过调整网络结构和超参数（如`n_mels`和训练轮数`epochs`），CNN也取得了顶尖的性能。实验中对`n_mels`和`epochs`参数的调整，以及对训练过程中过拟合现象的观察和调整，都加深了我对深度学习模型训练调优的理解。
+
+- 实践与问题解决能力：
+
+    - 在实验过程中，遇到了诸如逻辑回归不收敛的问题，通过查阅文档和分析原因（未进行特征标准化、迭代次数不足），成功解决了问题。
+
+    - 对比了不同的音频读取库（`scipy`与`soundfile`），虽然最终性能差异不大，但也了解了不同工具的细微差别。
+    
+    - 学习了如何使用`joblib`和`torch.save/load_state_dict`来保存和加载不同类型的模型，这对于模型的部署和复用非常重要。
+
+    - 实验流程的规范性和完整性：从数据加载、特征提取、模型训练、验证到测试评估，遵循了完整的机器学习实验流程。通过设置验证集来监控模型训练过程，有助于及时发现并调整潜在的过拟合等问题。
+
+总的来说，这次实验不仅让我掌握了使用不同技术手段进行语音真伪检测的方法，更重要的是锻炼了分析问题、选择合适技术方案以及动手解决实际问题的能力。
 
 
+### 4.3 遇到的问题 & 解决方法
 
+- 逻辑回归模型未收敛：切换为`mel`频谱特征后，Logistic Regression模型出现了`ConvergenceWarning`，提示模型未收敛。通过查阅文档，发现是由于未进行特征标准化和迭代次数不足导致的。解决方法是对特征进行标准化处理，并适当增加迭代次数。
 
+- 深度学习模型可能过拟合：在训练过程中发现验证集的损失和准确率在第6个epoch以后没有明显下降，可能存在过拟合现象。解决方法是减少训练轮数（`num_epochs`），并观察模型在不同轮数下的表现。
 
-### 4.2 遇到的问题 & 解决方法
+- 通过所给脚本安装的环境存在问题：在一开始运行`train1.py`时，发现使用脚本安装的部分库版本不兼容（如`numpy`），导致无法正常运行。解决方法是手动更新相关库的版本，即`pip install --upgrade librosa soundfile numpy`。
 
 
 ## 5. 课程建议
 
+本次课程内容充实，实验设计合理，让我对机器学习、深度学习及其应用有了更直观和深入的认识。
+
+对于本课程，我有以下几点建议：
+
+- 深化深度学习调参技巧的讲解：
+
+    - 在完成深度学习小作业时，我往往会在调参上比较迷茫，花费较多时间，结果还不太理想。感觉深度学习的调参更多的是经验主义，因此希望老师能够更系统、更深入地讲解深度学习模型调参的策略和技巧。例如，结合实践案例分享，展示调参的完整过程和思路，包括如何设定初始参数、如何迭代调整以及如何评估调参效果。而不是仅仅从理论的角度介绍。
+
+- 实验环境配置的说明：
+
+    - 建议在实验指导中提供统一的、经过测试的依赖包版本列表（如提供`requirements.txt`文件），以减少学生在环境配置上花费的时间。虽然本次实验提供了配置脚本，但还存在些许问题，需要通过自行更新库版本解决。更明确的`requirements.txt`使用起来会更方便。
+
+总体而言，这是一门非常有价值的课程，感谢老师和助教的辛勤付出。希望课程能够越办越好！

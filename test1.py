@@ -75,14 +75,14 @@ def load_data(data_dir, feature_type='mfcc'):
 
 
 def test():
-    # model_path = 'svm_linear_mfcc_sf.joblib'
-    # model_path = 'svm_linear_mfcc_scipy.joblib'
-    # model_path = 'svm_rbf_mfcc.joblib'
-    # model_path = 'logreg_mfcc.joblib'
+    # model_path = './models/svm_linear_mfcc_sf.joblib'
+    # model_path = './models/svm_linear_mfcc_scipy.joblib'
+    # model_path = './models/svm_rbf_mfcc.joblib'
+    # model_path = './models/logreg_mfcc.joblib'
     
-    # model_path = 'svm_linear_mel.joblib'
-    model_path = 'svm_rbf_mel.joblib'
-    # model_path = 'logreg_mel.joblib'
+    # model_path = './models/svm_linear_mel.joblib'
+    model_path = './models/svm_rbf_mel.joblib'
+    # model_path = './models/logreg_mel.joblib'
 
     print("加载测试集...")
     # X_test, y_test = load_data(data_dir, feature_type='mfcc')

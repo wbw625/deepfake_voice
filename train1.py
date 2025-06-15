@@ -77,7 +77,7 @@ def load_data(data_dir, feature_type='mel'):
 
 
 def train_svm_linear():
-    model_path = 'svm_linear_mel.joblib'
+    model_path = './models/svm_linear_mel.joblib'
     print("加载数据中...")
     X, y = load_data(data_dir, feature_type='mel')
     print(f"数据量: {len(y)}")

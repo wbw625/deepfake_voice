@@ -2,3 +2,4 @@ deep_voice
 __pycache__
 *.joblib
 *.pth
+models
