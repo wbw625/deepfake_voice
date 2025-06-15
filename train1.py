@@ -96,7 +96,7 @@ def train_svm_linear():
 
 
 def train_svm_rbf():
-    model_path = 'svm_rbf_mel.joblib'
+    model_path = './models/svm_rbf_mel.joblib'
     print("加载数据中...")
     X, y = load_data(data_dir, feature_type='mel')
     print(f"数据量: {len(y)}")
@@ -115,7 +115,7 @@ def train_svm_rbf():
 
 
 def train_logistic_regression():
-    model_path = 'logreg_mel.joblib'
+    model_path = './models/logreg_mel.joblib'
     print("加载数据中...")
     X, y = load_data(data_dir, feature_type='mel')
     print(f"数据量: {len(y)}")
