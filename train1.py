@@ -36,7 +36,7 @@ data_dir = './deep_voice/train'
 #         return np.mean(feat, axis=1)
 
 
-def extract_feature(file_path, feature_type='mfcc', n_mfcc=20):
+def extract_feature(file_path, feature_type='mel', n_mfcc=20):
     sr, y = scipy.io.wavfile.read(file_path)
     y = y.astype(np.float32)
     # 归一化到[-1, 1]，防止溢出
@@ -58,7 +58,7 @@ def extract_feature(file_path, feature_type='mfcc', n_mfcc=20):
         feat = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=n_mfcc)
         return np.mean(feat, axis=1)
 
-def load_data(data_dir, feature_type='mfcc'):
+def load_data(data_dir, feature_type='mel'):
     X, y = [], []
     for label_name, label in [('real', 1), ('fake', 0)]:
         folder = os.path.join(data_dir, label_name)
@@ -86,7 +86,7 @@ def train_svm_linear():
     scaler = StandardScaler()
     X = scaler.fit_transform(X)
 
-    print("训练SVM模型...")
+    print("训练SVM模型(Linear)...")
     clf = SVC(kernel='linear', probability=True)
     clf.fit(X, y)
 
@@ -105,7 +105,7 @@ def train_svm_rbf():
     scaler = StandardScaler()
     X = scaler.fit_transform(X)
 
-    print("训练SVM模型...")
+    print("训练SVM模型(RBF)...")
     clf = SVC(kernel='rbf', probability=True)
     clf.fit(X, y)
 
@@ -125,7 +125,7 @@ def train_logistic_regression():
     X = scaler.fit_transform(X)
 
     print("训练逻辑回归模型...")
-    clf = LogisticRegression(max_iter=2000)  # 可适当增加迭代次数
+    clf = LogisticRegression(max_iter=2000)
     clf.fit(X, y)
 
     print(f"保存模型到 {model_path}")
