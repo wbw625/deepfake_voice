@@ -13,7 +13,6 @@ import scipy.io.wavfile
 from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
 
 data_dir = './deep_voice/test'
-model_path = 'dl_mel.pth'
 
 def extract_feature(file_path, feature_type='mel', n_mfcc=20, n_mels=128):
     sr, y = scipy.io.wavfile.read(file_path)
@@ -82,6 +81,8 @@ class SimpleCNN(nn.Module):
         return x
 
 def evaluate():
+    model_path = 'dl_mels128_epochs10.pth'
+
     n_mels = 128
     batch_size = 16
 
